@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-// MARK: Example tabs, replace with your actual tabs
 enum TabItem: Int, CaseIterable, Identifiable {
-    case login
+    case glucose
     case images
     case documents
 
@@ -17,7 +16,7 @@ enum TabItem: Int, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .login: return "Login"
+        case .glucose: return "Glucosa"
         case .images: return "Images"
         case .documents: return "Documents"
         }
@@ -25,7 +24,7 @@ enum TabItem: Int, CaseIterable, Identifiable {
 
     var systemImage: String {
         switch self {
-        case .login: return "paperplane.fill"
+        case .glucose: return "drop.fill"
         case .images: return "photo.fill"
         case .documents: return "document.fill"
         }
@@ -33,7 +32,7 @@ enum TabItem: Int, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
-        case .login: return .blue
+        case .glucose: return .red
         case .images: return .yellow
         case .documents: return .green
         }
@@ -41,7 +40,7 @@ enum TabItem: Int, CaseIterable, Identifiable {
 
     var badge: Int {
         switch self {
-        case .login: return 0
+        case .glucose: return 0
         case .images: return 0
         case .documents: return 0
         }
@@ -50,16 +49,51 @@ enum TabItem: Int, CaseIterable, Identifiable {
     @ViewBuilder
     var view: some View {
         switch self {
-        case .login:
-            // TODO: - Change at correct screen
-            Text("Login")
+        case .glucose:
+            GlucoseTabView()
         case .images:
-            // TODO: - Change at correct screen
             Text("Images")
         case .documents:
-            // TODO: - Change at correct screen
             Text("Documents")
         }
+    }
+}
+
+// MARK: - GlucoseTabView
+struct GlucoseTabView: View {
+    @State private var navigator = Navigator.shared
+
+    var body: some View {
+        NavigationStack(path: $navigator.path) {
+            GlucoseImportBuilder.build()
+                .navigationDestination(for: Page.self) { page in
+                    page
+                }
+        }
+        .sheet(item: $navigator.sheet) { page in
+            NestedSheetHost(navigator: navigator, content: page)
+        }
+        .alert(LocalizedStringKey(navigator.alertModel.title), isPresented: $navigator.isPresentingAlert) {
+            AnyView(navigator.alertModel.style.buttons)
+        } message: {
+            Text(LocalizedStringKey(navigator.alertModel.message))
+        }
+        .overlay(
+            VStack {
+                Spacer()
+                if let toastView = navigator.toastView {
+                    AnyView(toastView)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                                withAnimation { navigator.toastView = nil }
+                            }
+                        }
+                        .padding(.bottom, 8)
+                }
+            }
+            .ignoresSafeArea(.keyboard)
+        )
     }
 }
 
@@ -68,7 +102,7 @@ struct CustomTabBar: View {
     @State private var navigator = Navigator.shared
     private var config: TabBarConfig
 
-    init(initialTab: TabItem = .login) {
+    init(initialTab: TabItem = .glucose) {
         self.config = TabBarConfig.default
         navigator.tabIndex = initialTab.rawValue
         configureTabBarAppearance(config: self.config)

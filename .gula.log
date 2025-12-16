@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "created": "2025-12-16T11:29:02Z",
+    "gula_version": "0.0.136"
+  },
+  "operations": [
+    {
+      "timestamp": "2025-12-16T11:29:02Z",
+      "operation": "install",
+      "platform": "ios",
+      "module": "Authentication",
+      "source": "main",
+      "status": "started",
+      "details": "",
+      "gula_version": "0.0.136"
+    },
+    {
+      "timestamp": "2025-12-16T11:29:31Z",
+      "operation": "install",
+      "platform": "ios",
+      "module": "Authentication",
+      "source": "main",
+      "status": "success",
+      "details": "",
+      "gula_version": "1.27.0"
+    }
+  ],
+  "installed_modules": {
+    "ios:Authentication": {
+      "platform": "ios",
+      "module": "Authentication",
+      "source": "main",
+      "install_mode": "integrate",
+      "installed_at": "2025-12-16T11:29:31Z",
+      "gula_version": "1.27.0"
+    }
+  }
+}

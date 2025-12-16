@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C1C513132EF179C10075BD2E /* TripleA in Frameworks */ = {isa = PBXBuildFile; productRef = C1C513122EF179C10075BD2E /* TripleA */; };
+		C1C514362EF17A260075BD2E /* TripleA in Frameworks */ = {isa = PBXBuildFile; productRef = CB15B8CE22CD63539D43F664 /* TripleA */; };
+		C1C514372EF17A260075BD2E /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = BB098608D87C8690A326F588 /* GoogleSignIn */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8F2AC8F92DA0029400E66B45 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -39,6 +45,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C1C514372EF17A260075BD2E /* GoogleSignIn in Frameworks */,
+				C1C514362EF17A260075BD2E /* TripleA in Frameworks */,
+				C1C513132EF179C10075BD2E /* TripleA in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +99,9 @@
 			);
 			name = HealthTrack;
 			packageProductDependencies = (
+				C1C513122EF179C10075BD2E /* TripleA */,
+				CB15B8CE22CD63539D43F664 /* TripleA */,
+				BB098608D87C8690A326F588 /* GoogleSignIn */,
 			);
 			productName = HealthTrack;
 			productReference = 8F2AC8E82DA0029300E66B45 /* HealthTrack.app */;
@@ -112,8 +124,6 @@
 				8F2AC8FB2DA0029400E66B45 /* HealthTrackTests */,
 			);
 			name = HealthTrackTests;
-			packageProductDependencies = (
-			);
 			productName = HealthTrackTests;
 			productReference = 8F2AC8F82DA0029400E66B45 /* HealthTrackTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -149,6 +159,9 @@
 			mainGroup = 8F2AC8DF2DA0029300E66B45;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				C1C513112EF179C10075BD2E /* XCLocalSwiftPackageReference "../TripleA" */,
+				55CC5489F52CE8525B16D7C0 /* XCRemoteSwiftPackageReference "TripleA" */,
+				37C331BFFD050669249E5F80 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8F2AC8E92DA0029300E66B45 /* Products */;
@@ -455,6 +468,49 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		C1C513112EF179C10075BD2E /* XCLocalSwiftPackageReference "../TripleA" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../TripleA;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		37C331BFFD050669249E5F80 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+		55CC5489F52CE8525B16D7C0 /* XCRemoteSwiftPackageReference "TripleA" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/fsalom/TripleA";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BB098608D87C8690A326F588 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37C331BFFD050669249E5F80 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		C1C513122EF179C10075BD2E /* TripleA */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TripleA;
+		};
+		CB15B8CE22CD63539D43F664 /* TripleA */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 55CC5489F52CE8525B16D7C0 /* XCRemoteSwiftPackageReference "TripleA" */;
+			productName = TripleA;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8F2AC8E02DA0029300E66B45 /* Project object */;
 }

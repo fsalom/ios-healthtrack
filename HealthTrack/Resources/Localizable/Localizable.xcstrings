@@ -1,7 +1,295 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
+    "" : {
 
+    },
+    "%@" : {
+
+    },
+    "%@ %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld lecturas" : {
+
+    },
+    "account_changeEmail" : {
+
+    },
+    "account_changePassword" : {
+
+    },
+    "account_deleteAccountSuccess" : {
+
+    },
+    "account_directions" : {
+
+    },
+    "account_emailProperlyUpdated" : {
+
+    },
+    "account_passwordProperlyUpdated" : {
+
+    },
+    "account_paymentMethod" : {
+
+    },
+    "account_personalData" : {
+
+    },
+    "account_title" : {
+
+    },
+    "account_user" : {
+
+    },
+    "alert_deleteAccountTitle" : {
+
+    },
+    "auth_actualPassword" : {
+
+    },
+    "auth_changeEmailInfo" : {
+
+    },
+    "auth_changeEmailSent" : {
+
+    },
+    "auth_changeEmailToolbarTitle" : {
+
+    },
+    "auth_confirmEmailTitle" : {
+
+    },
+    "auth_createAccount" : {
+
+    },
+    "auth_email" : {
+
+    },
+    "auth_emailNotReceived" : {
+
+    },
+    "auth_emailSent" : {
+
+    },
+    "auth_emailSentInfo, %@" : {
+
+    },
+    "auth_emailSentInfoRegister, %@" : {
+
+    },
+    "auth_forgotPassword" : {
+
+    },
+    "auth_fullName" : {
+
+    },
+    "auth_goBackToHome" : {
+
+    },
+    "auth_haveAccount" : {
+
+    },
+    "auth_linkSent" : {
+
+    },
+    "auth_logIn" : {
+
+    },
+    "auth_loginLowercased" : {
+
+    },
+    "auth_newEmail" : {
+
+    },
+    "auth_newPassword" : {
+
+    },
+    "auth_newPasswordInformation" : {
+
+    },
+    "auth_noAccountYet" : {
+
+    },
+    "auth_password" : {
+
+    },
+    "auth_recoverPassword" : {
+
+    },
+    "auth_recoverPasswordInfo" : {
+
+    },
+    "auth_register" : {
+
+    },
+    "auth_registerCompleted" : {
+
+    },
+    "auth_RegisterCompletedTitle" : {
+
+    },
+    "auth_registerTitle" : {
+
+    },
+    "auth_repeatNewPassword" : {
+
+    },
+    "auth_repeatPassword" : {
+
+    },
+    "auth_resend" : {
+
+    },
+    "auth_send" : {
+
+    },
+    "auth_sendAgain" : {
+
+    },
+    "auth_socialLoginTitle" : {
+
+    },
+    "auth_update" : {
+
+    },
+    "auth_updateEmail" : {
+
+    },
+    "auth_updatePassword" : {
+
+    },
+    "auth_updatePasswordMessage" : {
+
+    },
+    "auth_updateWriteNewPassword" : {
+
+    },
+    "auth_writeEmail" : {
+
+    },
+    "auth_writeNewPassword" : {
+
+    },
+    "changeEmailCompletedTitle" : {
+
+    },
+    "common_accept" : {
+
+    },
+    "common_cancel" : {
+
+    },
+    "common_continue" : {
+
+    },
+    "common_continueWithApple" : {
+
+    },
+    "common_continueWithGoogle" : {
+
+    },
+    "common_goToSettings" : {
+
+    },
+    "common_logout" : {
+
+    },
+    "common_save" : {
+
+    },
+    "common_undo" : {
+
+    },
+    "Documents" : {
+
+    },
+    "End" : {
+
+    },
+    "Estadísticas" : {
+
+    },
+    "Glucosa" : {
+
+    },
+    "High" : {
+
+    },
+    "Historial" : {
+
+    },
+    "Hora" : {
+
+    },
+    "Images" : {
+
+    },
+    "Importar datos de glucosa" : {
+
+    },
+    "Low" : {
+
+    },
+    "mg/dL" : {
+
+    },
+    "personalData_changePersonalData" : {
+
+    },
+    "personalData_changePersonalDataInfo" : {
+
+    },
+    "personalData_completeName" : {
+
+    },
+    "personalData_personalData" : {
+
+    },
+    "personalData_phone" : {
+
+    },
+    "personalData_savedSuccess" : {
+
+    },
+    "register_notAllFieldsValid" : {
+
+    },
+    "register_passwordConditions" : {
+
+    },
+    "registerCompletedTitle" : {
+
+    },
+    "Selecciona un archivo CSV exportado desde FreeStyle LibreLink" : {
+
+    },
+    "Seleccionar archivo" : {
+
+    },
+    "Seleccionar Prefijo" : {
+
+    },
+    "Start" : {
+
+    },
+    "Todas las lecturas" : {
+
+    },
+    "Última lectura" : {
+
+    }
   },
   "version" : "1.0"
 }
