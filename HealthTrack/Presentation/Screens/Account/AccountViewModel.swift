@@ -8,12 +8,14 @@
 import Foundation
 import SwiftUI
 
-class AccountViewModel: ObservableObject {
+@Observable
+final class AccountViewModel {
     // MARK: - Properties
+    var userName: String = ""
+
     private let userUseCase: UserUseCaseProtocol
     private let authUseCase: AuthUseCaseProtocol
     private let router: AccountRouter
-    @Published var userName: String = ""
 
     // MARK: - Init
     init(userUseCase: UserUseCaseProtocol,

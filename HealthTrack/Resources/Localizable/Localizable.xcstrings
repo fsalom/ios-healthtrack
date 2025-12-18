@@ -23,6 +23,9 @@
     "%lld lecturas" : {
 
     },
+    "%lld registros" : {
+
+    },
     "account_changeEmail" : {
 
     },
@@ -182,6 +185,9 @@
     "auth_writeNewPassword" : {
 
     },
+    "Buscar por fecha (d/m)" : {
+
+    },
     "changeEmailCompletedTitle" : {
 
     },
@@ -212,22 +218,28 @@
     "common_undo" : {
 
     },
+    "Conectar con Apple Health" : {
+
+    },
     "Documents" : {
 
     },
     "End" : {
 
     },
-    "Estadísticas" : {
+    "Entrenamientos del día" : {
+
+    },
+    "Estadísticas del día" : {
+
+    },
+    "Filtrar" : {
 
     },
     "Glucosa" : {
 
     },
     "High" : {
-
-    },
-    "Historial" : {
 
     },
     "Hora" : {
@@ -239,10 +251,22 @@
     "Importar datos de glucosa" : {
 
     },
+    "Lecturas" : {
+
+    },
     "Low" : {
 
     },
     "mg/dL" : {
+
+    },
+    "No hay lecturas que coincidan con el filtro seleccionado" : {
+
+    },
+    "Pasos" : {
+
+    },
+    "Permitir acceso" : {
 
     },
     "personalData_changePersonalData" : {
@@ -281,13 +305,22 @@
     "Seleccionar Prefijo" : {
 
     },
+    "Sin resultados" : {
+
+    },
     "Start" : {
 
     },
-    "Todas las lecturas" : {
+    "Última lectura" : {
 
     },
-    "Última lectura" : {
+    "Ver todas las lecturas" : {
+
+    },
+    "Visualiza tus pasos y entrenamientos junto con los datos de glucosa" : {
+
+    },
+    "Workout" : {
 
     }
   },

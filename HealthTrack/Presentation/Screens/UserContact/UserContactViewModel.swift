@@ -1,16 +1,17 @@
 import Foundation
 
-class UserContactViewModel: ObservableObject {
+@Observable
+final class UserContactViewModel: ChangeSelectedPrefix {
     private let userUseCase: UserUseCaseProtocol
     private let router: UserContactRouter
     private let prefixesUseCase: PrefixesUseCaseProtocol
 
-    @Published var prefixes = [Prefix]()
-    @Published var selectedPrefix: Prefix?
-    @Published var phoneValidationResult: ValidationResult = .success
-    @Published var nameValidationResult: ValidationResult = .success
-    @Published var name: String = ""
-    @Published var phone: String = ""
+    var prefixes = [Prefix]()
+    var selectedPrefix: Prefix?
+    var phoneValidationResult: ValidationResult = .success
+    var nameValidationResult: ValidationResult = .success
+    var name: String = ""
+    var phone: String = ""
 
     init(userUseCase: UserUseCaseProtocol,
          router: UserContactRouter,
@@ -42,10 +43,8 @@ class UserContactViewModel: ObservableObject {
         prefixes = prefixesUseCase.getPrefixes()
         selectedPrefix = prefixes.first(where: { $0.code == Locale.current.region?.identifier })
     }
-}
 
-// MARK: - Delegate
-extension UserContactViewModel: ChangeSelectedPrefix {
+    // MARK: - ChangeSelectedPrefix
     func changeSelectedPrefix(_ prefix: Prefix) {
         self.selectedPrefix = prefix
     }

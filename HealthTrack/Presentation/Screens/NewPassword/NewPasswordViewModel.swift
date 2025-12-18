@@ -7,13 +7,14 @@
 
 import Foundation
 
-class NewPasswordViewModel: ObservableObject {
+@Observable
+final class NewPasswordViewModel {
     // MARK: Properties
-    @Published var passwordValidationResult: ValidationResult = .success
-    @Published var repeatedPasswordValidationResult: ValidationResult = .success
-    @Published var isLoading = false
-    @Published var password: String = ""
-    @Published var repeatPassword: String = ""
+    var passwordValidationResult: ValidationResult = .success
+    var repeatedPasswordValidationResult: ValidationResult = .success
+    var isLoading = false
+    var password: String = ""
+    var repeatPassword: String = ""
 
     var userId: String?
     private let authUseCase: AuthUseCaseProtocol

@@ -7,7 +7,8 @@
 
 import Foundation
 
-class RegisterCompletedViewModel: ObservableObject {
+@Observable
+final class RegisterCompletedViewModel {
     private let router: RegisterCompletedRouter
 
     init(router: RegisterCompletedRouter) {

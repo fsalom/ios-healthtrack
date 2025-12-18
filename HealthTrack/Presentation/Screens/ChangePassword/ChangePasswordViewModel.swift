@@ -9,13 +9,14 @@
 import Foundation
 import SwiftUI
 
-class ChangePasswordViewModel: ObservableObject {
+@Observable
+final class ChangePasswordViewModel {
     // MARK: Properties
-    @Published var passwordValidationResult: ValidationResult = .success
-    @Published var repeatedPasswordValidationResult: ValidationResult = .success
-    @Published var hasInitCall = false
-    @Published var password: String = ""
-    @Published var repeatPassword: String = ""
+    var passwordValidationResult: ValidationResult = .success
+    var repeatedPasswordValidationResult: ValidationResult = .success
+    var hasInitCall = false
+    var password: String = ""
+    var repeatPassword: String = ""
 
     private let userUseCase: UserUseCaseProtocol
     private let router: ChangePasswordRouter

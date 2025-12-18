@@ -7,19 +7,20 @@
 
 import Foundation
 
-class RegisterViewModel: ObservableObject {
+@Observable
+final class RegisterViewModel {
     // MARK: - Properties
-    @Published var email: String = ""
-    @Published var password: String = ""
-    @Published var repeatedPassword: String = ""
-    @Published var fullName: String = ""
+    var email: String = ""
+    var password: String = ""
+    var repeatedPassword: String = ""
+    var fullName: String = ""
 
-    @Published var emailValidationResult: ValidationResult = .success
-    @Published var passwordValidationResult: ValidationResult = .success
-    @Published var nameValidationResult: ValidationResult = .success
-    @Published var repeatedPasswordValidationResult: ValidationResult = .success
+    var emailValidationResult: ValidationResult = .success
+    var passwordValidationResult: ValidationResult = .success
+    var nameValidationResult: ValidationResult = .success
+    var repeatedPasswordValidationResult: ValidationResult = .success
 
-    @Published var isLoading: Bool = false
+    var isLoading: Bool = false
 
     private let authUseCase: AuthUseCaseProtocol
     private let router: RegisterRouter

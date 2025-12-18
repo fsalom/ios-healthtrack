@@ -7,13 +7,14 @@
 
 import Foundation
 
-class ChangeEmailViewModel: ObservableObject {
+@Observable
+final class ChangeEmailViewModel {
     private let userUseCase: UserUseCaseProtocol
     private let router: ChangeEmailRouter
 
-    @Published var email: String = ""
-    @Published var emailValidationResult: ValidationResult = .success
-    @Published var sendButtonState: ButtonState = .normal
+    var email: String = ""
+    var emailValidationResult: ValidationResult = .success
+    var sendButtonState: ButtonState = .normal
 
     // MARK: - Init
     init(

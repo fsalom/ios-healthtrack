@@ -7,12 +7,13 @@
 
 import Foundation
 
-class PrefixesViewModel: ObservableObject {
+@Observable
+final class PrefixesViewModel {
     private let router: PrefixesRouter
     private let delegate: ChangeSelectedPrefix?
 
     let prefixes: [Prefix]
-    @Published var selectedPrefix: Prefix
+    var selectedPrefix: Prefix
 
     init(
         router: PrefixesRouter,

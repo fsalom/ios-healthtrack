@@ -7,10 +7,11 @@
 
 import Foundation
 
-class VerifyPasswordViewModel: ObservableObject {
+@Observable
+final class VerifyPasswordViewModel {
     // MARK: - Properties
-    @Published var passwordValidationResult: ValidationResult = .success
-    @Published var password: String = ""
+    var passwordValidationResult: ValidationResult = .success
+    var password: String = ""
 
     private let userUseCase: UserUseCaseProtocol
     private let router: VerifyPasswordRouter

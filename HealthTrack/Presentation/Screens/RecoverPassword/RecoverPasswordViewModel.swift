@@ -7,14 +7,15 @@
 
 import Foundation
 
-class RecoverPasswordViewModel: ObservableObject {
+@Observable
+final class RecoverPasswordViewModel {
     // MARK: - Properties
-    @Published var email: String = ""
+    var email: String = ""
+    var emailValidationResult: ValidationResult = .success
+    var isLoading = false
 
     private let authUseCase: AuthUseCaseProtocol
     private let router: RecoverPasswordRouter
-    @Published var emailValidationResult: ValidationResult = .success
-    @Published var isLoading = false
 
     // MARK: - Init
     init(

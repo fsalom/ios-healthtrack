@@ -9,7 +9,10 @@ import SwiftUI
 import AuthenticationServices
 import GoogleSignIn
 
-class LoginViewModel: NSObject, ObservableObject {
+// NOTE: LoginViewModel mantiene ObservableObject debido a que ASAuthorizationControllerDelegate
+// requiere herencia de NSObject, lo cual es incompatible con @Observable.
+// Considerar extraer la lógica de Apple Sign-In a un helper separado en el futuro.
+final class LoginViewModel: NSObject, ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
 
