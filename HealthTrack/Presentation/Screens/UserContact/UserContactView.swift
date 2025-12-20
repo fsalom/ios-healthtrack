@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct UserContactView: View {
-    @StateObject var viewModel: UserContactViewModel
+    @State var viewModel: UserContactViewModel
     @State private var continueButtonState: ButtonState = .normal
     @State private var isFieldEmptyCheckedFromView = false
     @FocusState var isFocusedNameTextField: Bool

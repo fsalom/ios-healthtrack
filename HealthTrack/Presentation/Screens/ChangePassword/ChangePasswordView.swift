@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct ChangePasswordView: View {
-    @ObservedObject var viewModel: ChangePasswordViewModel
+    @State var viewModel: ChangePasswordViewModel
     @State private var sendButtonState: ButtonState = .normal
     @FocusState var isFocusedNewPasswordTextField: Bool
     @FocusState var isFocusedRepeatPasswordTextField: Bool

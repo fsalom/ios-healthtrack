@@ -17,7 +17,7 @@ enum AccountScreen: LocalizedStringKey, CaseIterable {
 }
 
 struct AccountView: View {
-    @StateObject var viewModel: AccountViewModel
+    @State var viewModel: AccountViewModel
 
     var body: some View {
         VStack(spacing: 0) {

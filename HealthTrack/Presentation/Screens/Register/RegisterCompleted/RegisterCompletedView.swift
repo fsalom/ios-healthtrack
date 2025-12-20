@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RegisterCompletedView: View {
-    @ObservedObject var viewModel: RegisterCompletedViewModel
+    @State var viewModel: RegisterCompletedViewModel
 
     var body: some View {
         ZStack {

@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct RegisterView: View {
-    @ObservedObject var viewModel: RegisterViewModel
+    @State var viewModel: RegisterViewModel
     @State private var sendButtonState: ButtonState = .normal
     @FocusState var isFocusedFullNameTextField: Bool
     @FocusState var isFocusedPasswordTextField: Bool

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct VerifyPasswordView: View {
-    @StateObject var viewModel: VerifyPasswordViewModel
+    @State var viewModel: VerifyPasswordViewModel
     @State var buttonState: ButtonState = .normal
     @FocusState var isFocusedPasswordTextField: Bool
 

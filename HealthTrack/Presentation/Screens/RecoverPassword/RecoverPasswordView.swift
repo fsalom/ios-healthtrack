@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct RecoverPasswordView: View {
-    @ObservedObject var viewModel: RecoverPasswordViewModel
+    @State var viewModel: RecoverPasswordViewModel
     @FocusState var isFocusedEmailTextField: Bool
     @State var sendButtonState: ButtonState = .normal
 

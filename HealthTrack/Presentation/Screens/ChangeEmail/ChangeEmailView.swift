@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ChangeEmailView: View {
-    @ObservedObject var viewModel: ChangeEmailViewModel
+    @State var viewModel: ChangeEmailViewModel
     @State private var isFieldEmptyCheckedFromView = false
     @FocusState var isFocusedEmailField: Bool
 

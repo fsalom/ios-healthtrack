@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PrefixesView: View {
-    @StateObject var viewModel: PrefixesViewModel
+    @State var viewModel: PrefixesViewModel
 
     var body: some View {
         VStack(alignment: .leading) {
