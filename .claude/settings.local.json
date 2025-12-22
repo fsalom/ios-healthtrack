@@ -6,7 +6,9 @@
       "Bash(tree:*)",
       "Bash(mkdir:*)",
       "Bash(git mv:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(wc:*)",
+      "Bash(xcodebuild:*)"
     ]
   }
 }

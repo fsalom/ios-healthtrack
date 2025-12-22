@@ -136,7 +136,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1610;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 2610;
 				ORGANIZATIONNAME = "Rudo Apps";
 				TargetAttributes = {
 					8F2AC8E72DA0029300E66B45 = {
@@ -275,6 +275,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -331,6 +332,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -348,6 +350,7 @@
 				DEVELOPMENT_TEAM = X8Z657K235;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Necesitamos acceso a la camara para poder leer los codigos de barra";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Proporciona acceso para que puedas ver tus actividades junto a tus datos";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Proporciona acceso para que puedas ver tus actividades junto a tus datos";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -381,6 +384,7 @@
 				DEVELOPMENT_TEAM = X8Z657K235;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Necesitamos acceso a la camara para poder leer los codigos de barra";
 				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Proporciona acceso para que puedas ver tus actividades junto a tus datos";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Proporciona acceso para que puedas ver tus actividades junto a tus datos";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
