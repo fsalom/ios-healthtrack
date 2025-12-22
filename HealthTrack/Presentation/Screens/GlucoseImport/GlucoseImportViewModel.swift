@@ -17,6 +17,66 @@ struct HourRange: Equatable {
     static let afternoon = HourRange(start: 12, end: 18)
     static let evening = HourRange(start: 18, end: 24)
     static let night = HourRange(start: 0, end: 6)
+
+    var duration: Int { end - start }
+}
+
+// MARK: - ChartZoomState
+
+struct ChartZoomState: Equatable {
+    var visibleHours: Double = 24  // 2 to 24 hours
+    var centerHour: Double = 12     // 0 to 24
+
+    static let defaultState = ChartZoomState(visibleHours: 24, centerHour: 12)
+
+    var startHour: Double {
+        max(0, centerHour - visibleHours / 2)
+    }
+
+    var endHour: Double {
+        min(24, centerHour + visibleHours / 2)
+    }
+
+    var effectiveStart: Double {
+        // Adjust if we're at boundaries
+        if endHour >= 24 {
+            return max(0, 24 - visibleHours)
+        }
+        return startHour
+    }
+
+    var effectiveEnd: Double {
+        if startHour <= 0 {
+            return min(24, visibleHours)
+        }
+        return endHour
+    }
+
+    var zoomLevel: Double {
+        // 1.0 = full day, higher = more zoom
+        24.0 / visibleHours
+    }
+
+    mutating func zoom(by factor: Double) {
+        let newHours = max(2, min(24, visibleHours / factor))
+        visibleHours = newHours
+        // Clamp center to keep view within bounds
+        clampCenter()
+    }
+
+    mutating func pan(by hours: Double) {
+        centerHour += hours
+        clampCenter()
+    }
+
+    private mutating func clampCenter() {
+        let halfVisible = visibleHours / 2
+        centerHour = max(halfVisible, min(24 - halfVisible, centerHour))
+    }
+
+    mutating func reset() {
+        self = .defaultState
+    }
 }
 
 @Observable
@@ -27,19 +87,34 @@ final class GlucoseImportViewModel {
     var readings: [GlucoseReadingModel] = []
     var hourlyActivity: [HourlyActivityModel] = []
     var workouts: [WorkoutModel] = []
+    var meals: [MealModel] = []
     var isLoading: Bool = false
     var showingFilePicker: Bool = false
+    var showingAddMeal: Bool = false
+    var addMealTime: Date = Date()
     var hasImportedData: Bool = false
     var importedFileName: String = ""
     var healthKitAuthorized: Bool = false
     var showActivityData: Bool = true
+    var showMealData: Bool = true
 
     // Day navigation
     var selectedDay: Date = Date()
     var hourRange: HourRange = .fullDay
 
+    // Chart zoom state
+    var zoomState: ChartZoomState = .defaultState
+
     let targetLow: Int = 70
     let targetHigh: Int = 180
+
+    // Dynamic chart Y scale - minimum 180, or higher if readings exceed it
+    var chartYMax: Int {
+        let maxReading = selectedDayReadings.map { $0.valueInMgPerDl }.max() ?? 180
+        // Round up to nearest 20 for cleaner axis labels
+        let rounded = ((max(maxReading, 180) + 19) / 20) * 20
+        return rounded
+    }
 
     var latestReading: GlucoseReadingModel? {
         readings.first
@@ -68,31 +143,46 @@ final class GlucoseImportViewModel {
         return index < availableDays.count - 1
     }
 
-    // Readings for the selected day filtered by hour range
+    // Chart time boundaries based on zoom
+    var chartStartTime: Date {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: selectedDay)
+        let startHour = Int(zoomState.effectiveStart)
+        let startMinute = Int((zoomState.effectiveStart - Double(startHour)) * 60)
+        return calendar.date(bySettingHour: startHour, minute: startMinute, second: 0, of: startOfDay) ?? startOfDay
+    }
+
+    var chartEndTime: Date {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: selectedDay)
+        var endHour = Int(zoomState.effectiveEnd)
+        var endMinute = Int((zoomState.effectiveEnd - Double(endHour)) * 60)
+        if endHour >= 24 {
+            endHour = 23
+            endMinute = 59
+        }
+        return calendar.date(bySettingHour: endHour, minute: endMinute, second: 59, of: startOfDay) ?? startOfDay
+    }
+
+    // Readings for the selected day (all readings, chart will clip)
     var selectedDayReadings: [GlucoseReadingModel] {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: selectedDay)
 
         return readings.filter { reading in
             let readingDayStart = calendar.startOfDay(for: reading.timestamp)
-            guard readingDayStart == dayStart else { return false }
-
-            let hour = calendar.component(.hour, from: reading.timestamp)
-            return hour >= hourRange.start && hour < hourRange.end
+            return readingDayStart == dayStart
         }
     }
 
-    // Activity for the selected day filtered by hour range
+    // Activity for the selected day
     var selectedDayActivity: [HourlyActivityModel] {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: selectedDay)
 
         return hourlyActivity.filter { activity in
             let activityDayStart = calendar.startOfDay(for: activity.hour)
-            guard activityDayStart == dayStart else { return false }
-
-            let hour = calendar.component(.hour, from: activity.hour)
-            return hour >= hourRange.start && hour < hourRange.end
+            return activityDayStart == dayStart
         }
     }
 
@@ -105,6 +195,17 @@ final class GlucoseImportViewModel {
             let workoutDayStart = calendar.startOfDay(for: workout.startDate)
             return workoutDayStart == dayStart
         }
+    }
+
+    // Meals for the selected day
+    var selectedDayMeals: [MealModel] {
+        let calendar = Calendar.current
+        let dayStart = calendar.startOfDay(for: selectedDay)
+
+        return meals.filter { meal in
+            let mealDayStart = calendar.startOfDay(for: meal.timestamp)
+            return mealDayStart == dayStart
+        }.sorted { $0.timestamp < $1.timestamp }
     }
 
     var selectedDayMaxSteps: Int {
@@ -136,17 +237,20 @@ final class GlucoseImportViewModel {
     private let router: Router
     private let importUseCase: ImportGlucoseDataUseCaseProtocol
     private let fetchActivityUseCase: FetchActivityDataUseCaseProtocol
+    private let getMealsUseCase: GetMealsUseCaseProtocol
 
     // MARK: - Init
 
     init(
         router: Router,
         importUseCase: ImportGlucoseDataUseCaseProtocol = ImportGlucoseDataUseCase(),
-        fetchActivityUseCase: FetchActivityDataUseCaseProtocol = FetchActivityDataUseCase()
+        fetchActivityUseCase: FetchActivityDataUseCaseProtocol = FetchActivityDataUseCase(),
+        getMealsUseCase: GetMealsUseCaseProtocol = GetMealsUseCase(repository: MealRepository())
     ) {
         self.router = router
         self.importUseCase = importUseCase
         self.fetchActivityUseCase = fetchActivityUseCase
+        self.getMealsUseCase = getMealsUseCase
     }
 
     // MARK: - Public Methods
@@ -164,10 +268,11 @@ final class GlucoseImportViewModel {
                 selectedDay = mostRecentDay
             }
 
-            // Fetch activity data for the same date range
+            // Fetch activity data and meals for the same date range
             if hasImportedData {
                 Task {
                     await fetchActivityData()
+                    await fetchMeals()
                 }
             }
         } catch {
@@ -188,6 +293,7 @@ final class GlucoseImportViewModel {
         readings = []
         hourlyActivity = []
         workouts = []
+        meals = []
         hasImportedData = false
         importedFileName = ""
     }
@@ -227,6 +333,33 @@ final class GlucoseImportViewModel {
         showActivityData.toggle()
     }
 
+    func toggleMealData() {
+        showMealData.toggle()
+    }
+
+    // MARK: - Meal Methods
+
+    @MainActor
+    func fetchMeals() async {
+        guard let range = dateRange else { return }
+
+        do {
+            meals = try await getMealsUseCase.execute(from: range.start, to: range.end)
+        } catch {
+            print("Error fetching meals: \(error.localizedDescription)")
+        }
+    }
+
+    func didTapAddMealAtTime(_ time: Date) {
+        addMealTime = time
+        showingAddMeal = true
+    }
+
+    func addMeal(_ meal: MealModel) {
+        meals.append(meal)
+        meals.sort { $0.timestamp < $1.timestamp }
+    }
+
     // MARK: - Day Navigation
 
     func goToPreviousDay() {
@@ -248,5 +381,49 @@ final class GlucoseImportViewModel {
 
     func setHourRange(_ range: HourRange) {
         hourRange = range
+    }
+
+    // MARK: - Chart Zoom
+
+    func zoomIn() {
+        zoomState.zoom(by: 1.5)
+    }
+
+    func zoomOut() {
+        zoomState.zoom(by: 0.67)
+    }
+
+    func handleZoomGesture(scale: Double, initialHours: Double) {
+        // Apply zoom relative to initial state, with dampening for smoother control
+        let dampening = 0.5 // Makes zoom less aggressive
+        let adjustedScale = 1 + (scale - 1) * dampening
+        let newHours = initialHours / adjustedScale
+        zoomState.visibleHours = max(2, min(24, newHours))
+
+        // Keep center within bounds
+        let halfVisible = zoomState.visibleHours / 2
+        zoomState.centerHour = max(halfVisible, min(24 - halfVisible, zoomState.centerHour))
+    }
+
+    func handlePanGesture(translation: Double, chartWidth: Double) {
+        // Convert pixel translation to hours
+        let hoursPerPixel = zoomState.visibleHours / chartWidth
+        let hoursDelta = -translation * hoursPerPixel
+        zoomState.pan(by: hoursDelta)
+    }
+
+    func resetZoom() {
+        zoomState.reset()
+    }
+
+    func setVisibleHours(_ hours: Double) {
+        zoomState.visibleHours = max(2, min(24, hours))
+        // Recalculate center to stay in bounds
+        let halfVisible = zoomState.visibleHours / 2
+        zoomState.centerHour = max(halfVisible, min(24 - halfVisible, zoomState.centerHour))
+    }
+
+    var isZoomed: Bool {
+        zoomState.visibleHours < 24
     }
 }

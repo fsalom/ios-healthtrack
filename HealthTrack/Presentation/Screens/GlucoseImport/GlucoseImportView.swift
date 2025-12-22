@@ -35,6 +35,10 @@ struct GlucoseImportView: View {
                         workoutsCard
                     }
 
+                    if !viewModel.selectedDayMeals.isEmpty {
+                        mealsCard
+                    }
+
                     statisticsCard
 
                     viewAllReadingsButton
@@ -73,6 +77,14 @@ struct GlucoseImportView: View {
             case .failure(let error):
                 print("Error selecting file: \(error)")
             }
+        }
+        .sheet(isPresented: $viewModel.showingAddMeal) {
+            AddMealBuilder.build(
+                initialTime: viewModel.addMealTime,
+                onMealSaved: { meal in
+                    viewModel.addMeal(meal)
+                }
+            )
         }
     }
 
@@ -147,37 +159,47 @@ struct GlucoseImportView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
+    @State private var lastDragValue: CGFloat = 0
+    @State private var chartWidth: CGFloat = 0
+    @State private var initialZoomHours: Double = 24
+    @State private var selectedActivity: HourlyActivityModel?
+
     private var combinedChart: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Day navigator
             dayNavigator
 
-            // Hour range filter
-            hourRangeFilter
+            // Zoom controls
+            zoomControls
 
             // Hourly chart for selected day
             Chart {
                 // Target range area
                 RectangleMark(
-                    xStart: .value("Start", chartStartTime),
-                    xEnd: .value("End", chartEndTime),
+                    xStart: .value("Start", viewModel.chartStartTime),
+                    xEnd: .value("End", viewModel.chartEndTime),
                     yStart: .value("Low", viewModel.targetLow),
                     yEnd: .value("High", viewModel.targetHigh)
                 )
                 .foregroundStyle(.green.opacity(0.1))
 
-                // Activity bars (steps per hour)
+                // Activity bars (steps per hour) - drawn first so line appears on top
                 if viewModel.showActivityData {
                     ForEach(viewModel.selectedDayActivity) { activity in
                         BarMark(
                             x: .value("Hora", activity.hour),
-                            y: .value("Pasos", normalizedSteps(activity.steps))
+                            yStart: .value("Base", 40),
+                            yEnd: .value("Pasos", normalizedSteps(activity.steps))
                         )
-                        .foregroundStyle(activity.hasWorkout ? .orange.opacity(0.4) : .gray.opacity(0.3))
+                        .foregroundStyle(
+                            selectedActivity?.id == activity.id
+                                ? (activity.hasWorkout ? .orange.opacity(0.7) : .gray.opacity(0.6))
+                                : (activity.hasWorkout ? .orange.opacity(0.4) : .gray.opacity(0.3))
+                        )
                     }
                 }
 
-                // Glucose readings line
+                // Glucose readings - smooth line
                 ForEach(viewModel.selectedDayReadings) { reading in
                     LineMark(
                         x: .value("Hora", reading.timestamp),
@@ -185,13 +207,7 @@ struct GlucoseImportView: View {
                     )
                     .foregroundStyle(.blue)
                     .interpolationMethod(.catmullRom)
-
-                    PointMark(
-                        x: .value("Hora", reading.timestamp),
-                        y: .value("Glucosa", reading.valueInMgPerDl)
-                    )
-                    .foregroundStyle(colorForStatus(reading.status))
-                    .symbolSize(30)
+                    .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
                 }
 
                 // Workout markers
@@ -207,23 +223,116 @@ struct GlucoseImportView: View {
                             }
                     }
                 }
+
+                // Meal markers
+                if viewModel.showMealData {
+                    ForEach(viewModel.selectedDayMeals) { meal in
+                        RuleMark(x: .value("Meal", meal.timestamp))
+                            .foregroundStyle(.green.opacity(0.6))
+                            .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 3]))
+                            .annotation(position: .top) {
+                                Image(systemName: "fork.knife")
+                                    .font(.caption2)
+                                    .foregroundStyle(.green)
+                            }
+                    }
+                }
+
+                // Steps annotation - drawn last so it appears on top of everything
+                if viewModel.showActivityData, let selected = selectedActivity, selected.steps > 0 {
+                    PointMark(
+                        x: .value("Hora", selected.hour),
+                        y: .value("Pasos", normalizedSteps(selected.steps))
+                    )
+                    .foregroundStyle(.clear)
+                    .annotation(position: .top) {
+                        Text("\(selected.steps) pasos")
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(.systemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                    }
+                }
             }
-            .chartYScale(domain: 40...300)
+            .chartXScale(domain: viewModel.chartStartTime...viewModel.chartEndTime)
+            .chartYScale(domain: 40...viewModel.chartYMax)
             .chartYAxis {
-                AxisMarks(position: .leading, values: [40, 70, 100, 140, 180, 220, 260, 300]) { _ in
+                AxisMarks(position: .leading, values: yAxisValues) { _ in
                     AxisGridLine()
                     AxisValueLabel()
                 }
             }
             .chartXAxis {
-                AxisMarks(values: .stride(by: .hour, count: 2)) { _ in
+                AxisMarks(values: .stride(by: .hour, count: xAxisStrideCount)) { _ in
                     AxisGridLine()
                     AxisValueLabel(format: .dateTime.hour())
                 }
             }
-            .frame(height: 220)
+            .chartOverlay { proxy in
+                GeometryReader { geometry in
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .onAppear {
+                            chartWidth = geometry.size.width
+                        }
+                        .gesture(
+                            SpatialTapGesture()
+                                .onEnded { value in
+                                    let xPosition = value.location.x - geometry[proxy.plotFrame!].origin.x
+                                    let yPosition = value.location.y - geometry[proxy.plotFrame!].origin.y
+                                    let plotHeight = geometry[proxy.plotFrame!].height
 
-            // Legend and activity toggle
+                                    if let date: Date = proxy.value(atX: xPosition) {
+                                        // If tapping in bottom 30% of chart, select activity bar
+                                        if yPosition > plotHeight * 0.7 && viewModel.showActivityData {
+                                            selectActivityAt(date: date)
+                                        } else {
+                                            // Clear selection and add meal
+                                            selectedActivity = nil
+                                            viewModel.didTapAddMealAtTime(date)
+                                        }
+                                    }
+                                }
+                        )
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    let delta = value.translation.width - lastDragValue
+                                    lastDragValue = value.translation.width
+                                    viewModel.handlePanGesture(translation: delta, chartWidth: chartWidth)
+                                }
+                                .onEnded { _ in
+                                    lastDragValue = 0
+                                }
+                        )
+                        .gesture(
+                            MagnifyGesture()
+                                .onChanged { value in
+                                    viewModel.handleZoomGesture(
+                                        scale: value.magnification,
+                                        initialHours: initialZoomHours
+                                    )
+                                }
+                                .onEnded { _ in
+                                    initialZoomHours = viewModel.zoomState.visibleHours
+                                }
+                        )
+                        .onAppear {
+                            initialZoomHours = viewModel.zoomState.visibleHours
+                        }
+                }
+            }
+            .frame(height: 220)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.zoomState)
+            .onChange(of: viewModel.selectedDay) {
+                selectedActivity = nil
+            }
+
+            // Legend and toggles
             HStack {
                 HStack(spacing: 12) {
                     LegendItem(color: .blue, label: "Glucosa")
@@ -231,20 +340,37 @@ struct GlucoseImportView: View {
                         LegendItem(color: .gray.opacity(0.5), label: "Pasos")
                         LegendItem(color: .orange, label: "Ejercicio")
                     }
+                    if viewModel.showMealData {
+                        LegendItem(color: .green, label: "Comidas")
+                    }
                 }
                 .font(.caption2)
 
                 Spacer()
 
-                if viewModel.healthKitAuthorized && !viewModel.hourlyActivity.isEmpty {
+                HStack(spacing: 8) {
+                    // Meal toggle
                     Button {
-                        viewModel.toggleActivityData()
+                        viewModel.toggleMealData()
                     } label: {
-                        Image(systemName: viewModel.showActivityData ? "figure.walk.circle.fill" : "figure.walk.circle")
+                        Image(systemName: viewModel.showMealData ? "fork.knife.circle.fill" : "fork.knife.circle")
                             .font(.body)
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
+                    .tint(.green)
+
+                    // Activity toggle
+                    if viewModel.healthKitAuthorized && !viewModel.hourlyActivity.isEmpty {
+                        Button {
+                            viewModel.toggleActivityData()
+                        } label: {
+                            Image(systemName: viewModel.showActivityData ? "figure.walk.circle.fill" : "figure.walk.circle")
+                                .font(.body)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
                 }
             }
         }
@@ -288,38 +414,73 @@ struct GlucoseImportView: View {
         .padding(.vertical, 4)
     }
 
-    private var hourRangeFilter: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                HourRangeButton(title: "Todo", range: .fullDay, selected: viewModel.hourRange) {
-                    viewModel.setHourRange(.fullDay)
+    private var xAxisStrideCount: Int {
+        // Adjust axis label density based on zoom level
+        let hours = viewModel.zoomState.visibleHours
+        if hours <= 4 { return 1 }
+        if hours <= 8 { return 1 }
+        if hours <= 12 { return 2 }
+        return 2
+    }
+
+    private var yAxisValues: [Int] {
+        // Generate Y axis values from 40 to chartYMax in steps of 40
+        let maxY = viewModel.chartYMax
+        var values: [Int] = []
+        var current = 40
+        while current <= maxY {
+            values.append(current)
+            current += 40
+        }
+        // Ensure we always include the max
+        if let last = values.last, last < maxY {
+            values.append(maxY)
+        }
+        return values
+    }
+
+    private var zoomControls: some View {
+        HStack {
+            // Zoom level indicator
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+
+                if viewModel.isZoomed {
+                    Text(timeRangeText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Pellizca para zoom")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
-                HourRangeButton(title: "Noche", subtitle: "0-6h", range: .night, selected: viewModel.hourRange) {
-                    viewModel.setHourRange(.night)
+            }
+
+            Spacer()
+
+            if viewModel.isZoomed {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        viewModel.resetZoom()
+                        initialZoomHours = 24
+                    }
+                } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.caption)
                 }
-                HourRangeButton(title: "Mañana", subtitle: "6-12h", range: .morning, selected: viewModel.hourRange) {
-                    viewModel.setHourRange(.morning)
-                }
-                HourRangeButton(title: "Tarde", subtitle: "12-18h", range: .afternoon, selected: viewModel.hourRange) {
-                    viewModel.setHourRange(.afternoon)
-                }
-                HourRangeButton(title: "Noche", subtitle: "18-24h", range: .evening, selected: viewModel.hourRange) {
-                    viewModel.setHourRange(.evening)
-                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+                .tint(.secondary)
             }
         }
     }
 
-    private var chartStartTime: Date {
-        let calendar = Calendar.current
-        return calendar.date(bySettingHour: viewModel.hourRange.start, minute: 0, second: 0, of: viewModel.selectedDay) ?? viewModel.selectedDay
-    }
-
-    private var chartEndTime: Date {
-        let calendar = Calendar.current
-        let hour = viewModel.hourRange.end == 24 ? 23 : viewModel.hourRange.end
-        let minute = viewModel.hourRange.end == 24 ? 59 : 0
-        return calendar.date(bySettingHour: hour, minute: minute, second: 59, of: viewModel.selectedDay) ?? viewModel.selectedDay
+    private var timeRangeText: String {
+        let startHour = Int(viewModel.zoomState.effectiveStart)
+        let endHour = Int(viewModel.zoomState.effectiveEnd)
+        return String(format: "%02d:00 - %02d:00", startHour, endHour == 24 ? 0 : endHour)
     }
 
     private var healthKitAuthorizationCard: some View {
@@ -394,6 +555,69 @@ struct GlucoseImportView: View {
                 .padding(.vertical, 4)
 
                 if workout.id != viewModel.selectedDayWorkouts.last?.id {
+                    Divider()
+                }
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var mealsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Comidas del dia")
+                    .font(.headline)
+                Spacer()
+                Text("\(viewModel.selectedDayMeals.count)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            ForEach(viewModel.selectedDayMeals) { meal in
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "fork.knife")
+                            .font(.title3)
+                            .foregroundStyle(.green)
+                            .frame(width: 32)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(meal.name)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text(meal.timestamp, format: .dateTime.hour().minute())
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(meal.totalNutrition.formattedCalories)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text("\(Int(meal.totalNutrition.carbohydrates))g carbs")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    // Show items summary
+                    if !meal.items.isEmpty {
+                        HStack {
+                            Text(meal.items.map { $0.name }.joined(separator: ", "))
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                                .lineLimit(1)
+                        }
+                        .padding(.leading, 40)
+                    }
+                }
+                .padding(.vertical, 4)
+
+                if meal.id != viewModel.selectedDayMeals.last?.id {
                     Divider()
                 }
             }
@@ -483,6 +707,23 @@ struct GlucoseImportView: View {
         let normalizedValue = 40 + (Double(steps) / Double(maxSteps)) * 80
         return Int(normalizedValue)
     }
+
+    private func selectActivityAt(date: Date) {
+        let calendar = Calendar.current
+        let tappedHour = calendar.component(.hour, from: date)
+
+        // Find activity matching the tapped hour
+        if let activity = viewModel.selectedDayActivity.first(where: {
+            calendar.component(.hour, from: $0.hour) == tappedHour
+        }) {
+            // Toggle selection
+            if selectedActivity?.id == activity.id {
+                selectedActivity = nil
+            } else {
+                selectedActivity = activity
+            }
+        }
+    }
 }
 
 // MARK: - StatItem
@@ -526,44 +767,5 @@ private struct LegendItem: View {
             Text(label)
                 .foregroundStyle(.secondary)
         }
-    }
-}
-
-// MARK: - HourRangeButton
-
-private struct HourRangeButton: View {
-    let title: String
-    var subtitle: String? = nil
-    let range: HourRange
-    let selected: HourRange
-    let action: () -> Void
-
-    private var isSelected: Bool {
-        range == selected
-    }
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 2) {
-                Text(title)
-                    .font(.caption)
-                    .fontWeight(isSelected ? .semibold : .regular)
-                if let subtitle = subtitle {
-                    Text(subtitle)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
-            .foregroundStyle(isSelected ? .primary : .secondary)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
     }
 }

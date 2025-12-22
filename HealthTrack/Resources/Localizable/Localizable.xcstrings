@@ -4,6 +4,9 @@
     "" : {
 
     },
+    ":" : {
+
+    },
     "%@" : {
 
     },
@@ -20,10 +23,32 @@
     "%lld" : {
 
     },
+    "%lld kcal - %lldg carbs" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld kcal - %2$lldg carbs"
+          }
+        }
+      }
+    },
     "%lld lecturas" : {
 
     },
+    "%lld pasos" : {
+
+    },
     "%lld registros" : {
+
+    },
+    "%lldg" : {
+
+    },
+    "%lldg carbs" : {
+
+    },
+    "0" : {
 
     },
     "account_changeEmail" : {
@@ -56,7 +81,19 @@
     "account_user" : {
 
     },
+    "Agregar alimento" : {
+
+    },
+    "Agregar Comida" : {
+
+    },
     "alert_deleteAccountTitle" : {
+
+    },
+    "Alimentos" : {
+
+    },
+    "Alinea el codigo dentro del recuadro" : {
 
     },
     "auth_actualPassword" : {
@@ -185,10 +222,28 @@
     "auth_writeNewPassword" : {
 
     },
+    "Base" : {
+
+    },
+    "Buscando producto..." : {
+
+    },
     "Buscar por fecha (d/m)" : {
 
     },
+    "Calorias" : {
+
+    },
+    "Cantidad:" : {
+
+    },
+    "Carbos (g)" : {
+
+    },
     "changeEmailCompletedTitle" : {
+
+    },
+    "Comidas del dia" : {
 
     },
     "common_accept" : {
@@ -227,7 +282,16 @@
     "End" : {
 
     },
+    "Entrada manual" : {
+
+    },
     "Entrenamientos del día" : {
+
+    },
+    "Escanea el codigo de barras" : {
+
+    },
+    "Escanear" : {
 
     },
     "Estadísticas del día" : {
@@ -237,6 +301,12 @@
 
     },
     "Glucosa" : {
+
+    },
+    "Grasas (g)" : {
+
+    },
+    "Guardar Comida" : {
 
     },
     "High" : {
@@ -251,19 +321,40 @@
     "Importar datos de glucosa" : {
 
     },
+    "Informacion" : {
+
+    },
     "Lecturas" : {
 
     },
     "Low" : {
 
     },
+    "Manual" : {
+
+    },
+    "Meal" : {
+
+    },
     "mg/dL" : {
+
+    },
+    "Minutos" : {
 
     },
     "No hay lecturas que coincidan con el filtro seleccionado" : {
 
     },
+    "Nombre de la comida" : {
+
+    },
+    "Nombre del alimento" : {
+
+    },
     "Pasos" : {
+
+    },
+    "Pellizca para zoom" : {
 
     },
     "Permitir acceso" : {
@@ -285,6 +376,9 @@
 
     },
     "personalData_savedSuccess" : {
+
+    },
+    "Proteinas (g)" : {
 
     },
     "register_notAllFieldsValid" : {
@@ -309,6 +403,9 @@
 
     },
     "Start" : {
+
+    },
+    "TOTALES" : {
 
     },
     "Última lectura" : {
