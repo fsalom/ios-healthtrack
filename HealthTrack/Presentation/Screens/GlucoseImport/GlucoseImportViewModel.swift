@@ -92,14 +92,15 @@ final class GlucoseImportViewModel {
     var showingFilePicker: Bool = false
     var showingAddMeal: Bool = false
     var addMealTime: Date = Date()
-    var hasImportedData: Bool = false
+    var hasGlucoseData: Bool = false
     var importedFileName: String = ""
     var healthKitAuthorized: Bool = false
-    var showActivityData: Bool = true
+    var showGlucoseData: Bool = true
     var showMealData: Bool = true
+    var hasLoadedInitialData: Bool = false
 
-    // Day navigation
-    var selectedDay: Date = Date()
+    // Day navigation - defaults to today
+    var selectedDay: Date = Calendar.current.startOfDay(for: Date())
     var hourRange: HourRange = .fullDay
 
     // Chart zoom state
@@ -110,6 +111,7 @@ final class GlucoseImportViewModel {
 
     // Dynamic chart Y scale - minimum 180, or higher if readings exceed it
     var chartYMax: Int {
+        guard hasGlucoseData else { return 180 }
         let maxReading = selectedDayReadings.map { $0.valueInMgPerDl }.max() ?? 180
         // Round up to nearest 20 for cleaner axis labels
         let rounded = ((max(maxReading, 180) + 19) / 20) * 20
@@ -120,27 +122,31 @@ final class GlucoseImportViewModel {
         readings.first
     }
 
-    // Available days from imported data
-    var availableDays: [Date] {
-        let grouped = Dictionary(grouping: readings) { reading in
-            Calendar.current.startOfDay(for: reading.timestamp)
+    // Today's total steps
+    var todayTotalSteps: Int {
+        selectedDayActivity.reduce(into: 0) { result, activity in
+            result += activity.steps
         }
-        return grouped.keys.sorted()
     }
 
-    var selectedDayIndex: Int? {
-        let dayStart = Calendar.current.startOfDay(for: selectedDay)
-        return availableDays.firstIndex(of: dayStart)
+    // Today's total calories burned
+    var todayTotalCalories: Int {
+        selectedDayWorkouts.reduce(into: 0) { result, workout in
+            result += Int(workout.activeCalories)
+        }
     }
 
+    // Navigation is based on today +/- days, not glucose data
     var canGoToPreviousDay: Bool {
-        guard let index = selectedDayIndex else { return false }
-        return index > 0
+        // Can go back up to 30 days
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+        return selectedDay > thirtyDaysAgo
     }
 
     var canGoToNextDay: Bool {
-        guard let index = selectedDayIndex else { return false }
-        return index < availableDays.count - 1
+        // Can't go past today
+        let today = Calendar.current.startOfDay(for: Date())
+        return selectedDay < today
     }
 
     // Chart time boundaries based on zoom
@@ -212,24 +218,6 @@ final class GlucoseImportViewModel {
         selectedDayActivity.map { $0.steps }.max() ?? 1000
     }
 
-    var readingsGroupedByDay: [Date: [GlucoseReadingModel]] {
-        Dictionary(grouping: readings) { reading in
-            Calendar.current.startOfDay(for: reading.timestamp)
-        }
-    }
-
-    var sortedDays: [Date] {
-        readingsGroupedByDay.keys.sorted(by: >)
-    }
-
-    var dateRange: (start: Date, end: Date)? {
-        guard let first = readings.last?.timestamp,
-              let last = readings.first?.timestamp else {
-            return nil
-        }
-        return (first, last)
-    }
-
     var maxStepsPerHour: Int {
         hourlyActivity.map { $0.steps }.max() ?? 1000
     }
@@ -255,24 +243,83 @@ final class GlucoseImportViewModel {
 
     // MARK: - Public Methods
 
+    /// Called on appear to load today's data
+    @MainActor
+    func loadInitialData() async {
+        guard !hasLoadedInitialData else { return }
+        hasLoadedInitialData = true
+        isLoading = true
+
+        do {
+            try await fetchActivityUseCase.requestAuthorization()
+            healthKitAuthorized = true
+        } catch {
+            print("HealthKit authorization error: \(error.localizedDescription)")
+        }
+
+        await fetchActivityForSelectedDay()
+        await fetchMealsForSelectedDay()
+        isLoading = false
+    }
+
+    @MainActor
+    func fetchActivityForSelectedDay() async {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: selectedDay)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+
+        do {
+            let activityData = try await fetchActivityUseCase.execute(
+                from: startOfDay,
+                to: endOfDay
+            )
+            // Merge with existing data, avoiding duplicates
+            let existingIds = Set(hourlyActivity.map { $0.id })
+            let newActivity = activityData.hourlySteps.filter { !existingIds.contains($0.id) }
+            hourlyActivity.append(contentsOf: newActivity)
+
+            let existingWorkoutIds = Set(workouts.map { $0.id })
+            let newWorkouts = activityData.workouts.filter { !existingWorkoutIds.contains($0.id) }
+            workouts.append(contentsOf: newWorkouts)
+
+            healthKitAuthorized = true
+        } catch {
+            print("HealthKit error: \(error.localizedDescription)")
+        }
+    }
+
+    @MainActor
+    func fetchMealsForSelectedDay() async {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: selectedDay)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+
+        do {
+            let dayMeals = try await getMealsUseCase.execute(from: startOfDay, to: endOfDay)
+            // Merge avoiding duplicates
+            let existingIds = Set(meals.map { $0.id })
+            let newMeals = dayMeals.filter { !existingIds.contains($0.id) }
+            meals.append(contentsOf: newMeals)
+        } catch {
+            print("Error fetching meals: \(error.localizedDescription)")
+        }
+    }
+
     func importFile(from url: URL) {
         isLoading = true
 
         do {
             readings = try importUseCase.execute(from: url)
-            hasImportedData = !readings.isEmpty
+            hasGlucoseData = !readings.isEmpty
             importedFileName = url.lastPathComponent
 
-            // Set selected day to the most recent day with data
-            if let mostRecentDay = availableDays.last {
-                selectedDay = mostRecentDay
-            }
-
-            // Fetch activity data and meals for the same date range
-            if hasImportedData {
+            // If we have glucose data, select the most recent day with readings
+            if hasGlucoseData, let mostRecentReading = readings.first {
+                selectedDay = Calendar.current.startOfDay(for: mostRecentReading.timestamp)
+                // Fetch activity for the glucose date range
                 Task {
-                    await fetchActivityData()
-                    await fetchMeals()
+                    await fetchActivityForSelectedDay()
+                    await fetchMealsForSelectedDay()
                 }
             }
         } catch {
@@ -289,65 +336,19 @@ final class GlucoseImportViewModel {
         showingFilePicker = true
     }
 
-    func clearData() {
+    func clearGlucoseData() {
         readings = []
-        hourlyActivity = []
-        workouts = []
-        meals = []
-        hasImportedData = false
+        hasGlucoseData = false
         importedFileName = ""
+        selectedDay = Calendar.current.startOfDay(for: Date())
     }
 
-    func requestHealthKitAuthorization() async {
-        do {
-            try await fetchActivityUseCase.requestAuthorization()
-            healthKitAuthorized = true
-            await fetchActivityData()
-        } catch {
-            router.showAlert(
-                title: "HealthKit",
-                message: "No se pudieron obtener los permisos de HealthKit"
-            )
-        }
-    }
-
-    @MainActor
-    func fetchActivityData() async {
-        guard let range = dateRange else { return }
-
-        do {
-            let activityData = try await fetchActivityUseCase.execute(
-                from: range.start,
-                to: range.end
-            )
-            hourlyActivity = activityData.hourlySteps
-            workouts = activityData.workouts
-            healthKitAuthorized = true
-        } catch {
-            // HealthKit may not be authorized yet, don't show error
-            print("HealthKit error: \(error.localizedDescription)")
-        }
-    }
-
-    func toggleActivityData() {
-        showActivityData.toggle()
+    func toggleGlucoseData() {
+        showGlucoseData.toggle()
     }
 
     func toggleMealData() {
         showMealData.toggle()
-    }
-
-    // MARK: - Meal Methods
-
-    @MainActor
-    func fetchMeals() async {
-        guard let range = dateRange else { return }
-
-        do {
-            meals = try await getMealsUseCase.execute(from: range.start, to: range.end)
-        } catch {
-            print("Error fetching meals: \(error.localizedDescription)")
-        }
     }
 
     func didTapAddMealAtTime(_ time: Date) {
@@ -363,24 +364,33 @@ final class GlucoseImportViewModel {
     // MARK: - Day Navigation
 
     func goToPreviousDay() {
-        guard let index = selectedDayIndex, index > 0 else { return }
-        selectedDay = availableDays[index - 1]
-    }
-
-    func goToNextDay() {
-        guard let index = selectedDayIndex, index < availableDays.count - 1 else { return }
-        selectedDay = availableDays[index + 1]
-    }
-
-    func selectDay(_ date: Date) {
-        let dayStart = Calendar.current.startOfDay(for: date)
-        if availableDays.contains(dayStart) {
-            selectedDay = dayStart
+        guard canGoToPreviousDay else { return }
+        if let previousDay = Calendar.current.date(byAdding: .day, value: -1, to: selectedDay) {
+            selectedDay = Calendar.current.startOfDay(for: previousDay)
+            Task {
+                await fetchActivityForSelectedDay()
+                await fetchMealsForSelectedDay()
+            }
         }
     }
 
-    func setHourRange(_ range: HourRange) {
-        hourRange = range
+    func goToNextDay() {
+        guard canGoToNextDay else { return }
+        if let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: selectedDay) {
+            selectedDay = Calendar.current.startOfDay(for: nextDay)
+            Task {
+                await fetchActivityForSelectedDay()
+                await fetchMealsForSelectedDay()
+            }
+        }
+    }
+
+    func selectDay(_ date: Date) {
+        selectedDay = Calendar.current.startOfDay(for: date)
+        Task {
+            await fetchActivityForSelectedDay()
+            await fetchMealsForSelectedDay()
+        }
     }
 
     // MARK: - Chart Zoom

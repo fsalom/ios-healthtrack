@@ -39,9 +39,6 @@
     "%lld pasos" : {
 
     },
-    "%lld registros" : {
-
-    },
     "%lldg" : {
 
     },
@@ -79,6 +76,9 @@
 
     },
     "account_user" : {
+
+    },
+    "Actividad" : {
 
     },
     "Agregar alimento" : {
@@ -243,7 +243,7 @@
     "changeEmailCompletedTitle" : {
 
     },
-    "Comidas del dia" : {
+    "Comidas" : {
 
     },
     "common_accept" : {
@@ -273,10 +273,10 @@
     "common_undo" : {
 
     },
-    "Conectar con Apple Health" : {
+    "Documents" : {
 
     },
-    "Documents" : {
+    "Eliminar datos de glucosa" : {
 
     },
     "End" : {
@@ -285,16 +285,13 @@
     "Entrada manual" : {
 
     },
-    "Entrenamientos del día" : {
+    "Entrenamientos" : {
 
     },
     "Escanea el codigo de barras" : {
 
     },
     "Escanear" : {
-
-    },
-    "Estadísticas del día" : {
 
     },
     "Filtrar" : {
@@ -318,7 +315,7 @@
     "Images" : {
 
     },
-    "Importar datos de glucosa" : {
+    "Importar glucosa" : {
 
     },
     "Informacion" : {
@@ -336,10 +333,10 @@
     "Meal" : {
 
     },
-    "mg/dL" : {
+    "Minutos" : {
 
     },
-    "Minutos" : {
+    "Mostrar glucosa" : {
 
     },
     "No hay lecturas que coincidan con el filtro seleccionado" : {
@@ -351,13 +348,13 @@
     "Nombre del alimento" : {
 
     },
+    "Ocultar glucosa" : {
+
+    },
     "Pasos" : {
 
     },
     "Pellizca para zoom" : {
-
-    },
-    "Permitir acceso" : {
 
     },
     "personalData_changePersonalData" : {
@@ -390,10 +387,7 @@
     "registerCompletedTitle" : {
 
     },
-    "Selecciona un archivo CSV exportado desde FreeStyle LibreLink" : {
-
-    },
-    "Seleccionar archivo" : {
+    "Reimportar glucosa" : {
 
     },
     "Seleccionar Prefijo" : {
@@ -406,15 +400,6 @@
 
     },
     "TOTALES" : {
-
-    },
-    "Última lectura" : {
-
-    },
-    "Ver todas las lecturas" : {
-
-    },
-    "Visualiza tus pasos y entrenamientos junto con los datos de glucosa" : {
 
     },
     "Workout" : {
