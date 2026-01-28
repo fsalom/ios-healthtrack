@@ -109,6 +109,11 @@ struct GlucoseImportView: View {
                 }
             )
         }
+        .sheet(isPresented: $viewModel.showingWorkoutDetail) {
+            if let workout = viewModel.selectedWorkout {
+                WorkoutDetailBuilder.build(workout: workout)
+            }
+        }
         .task {
             await viewModel.loadInitialData()
         }
@@ -521,33 +526,10 @@ struct GlucoseImportView: View {
             }
 
             ForEach(viewModel.selectedDayWorkouts) { workout in
-                HStack {
-                    Image(systemName: workout.icon)
-                        .font(.title3)
-                        .foregroundStyle(.orange)
-                        .frame(width: 32)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(workout.displayName)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Text(workout.startDate, format: .dateTime.hour().minute())
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                WorkoutRowView(workout: workout)
+                    .onTapGesture {
+                        viewModel.didTapWorkout(workout)
                     }
-
-                    Spacer()
-
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text(workout.formattedDuration)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        Text(workout.formattedCalories)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.vertical, 4)
 
                 if workout.id != viewModel.selectedDayWorkouts.last?.id {
                     Divider()
@@ -730,6 +712,93 @@ private struct LegendItem: View {
                 .fill(color)
                 .frame(width: 8, height: 8)
             Text(label)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - WorkoutRowView
+
+private struct WorkoutRowView: View {
+    let workout: WorkoutModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Main row
+            HStack {
+                Image(systemName: workout.icon)
+                    .font(.title3)
+                    .foregroundStyle(.orange)
+                    .frame(width: 32)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(workout.displayName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Text(workout.startDate, format: .dateTime.hour().minute())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(workout.formattedDuration)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Text(workout.formattedCalories)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+
+            // Extended data row (if available)
+            if hasExtendedData {
+                HStack(spacing: 16) {
+                    if let distance = workout.formattedDistance {
+                        WorkoutStatBadge(icon: "figure.run", value: distance)
+                    }
+
+                    if let pace = workout.formattedPace {
+                        WorkoutStatBadge(icon: "speedometer", value: pace)
+                    }
+
+                    if let hr = workout.formattedHeartRate {
+                        WorkoutStatBadge(icon: "heart.fill", value: hr, color: .red)
+                    }
+                }
+                .padding(.leading, 40)
+            }
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+    }
+
+    private var hasExtendedData: Bool {
+        workout.formattedDistance != nil ||
+        workout.formattedPace != nil ||
+        workout.formattedHeartRate != nil
+    }
+}
+
+// MARK: - WorkoutStatBadge
+
+private struct WorkoutStatBadge: View {
+    let icon: String
+    let value: String
+    var color: Color = .secondary
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.caption2)
+                .foregroundStyle(color)
+            Text(value)
+                .font(.caption)
                 .foregroundStyle(.secondary)
         }
     }

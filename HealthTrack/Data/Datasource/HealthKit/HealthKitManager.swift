@@ -15,6 +15,11 @@ final class HealthKitManager: HealthKitManagerProtocol {
     private let typesToRead: Set<HKObjectType> = [
         HKQuantityType(.stepCount),
         HKQuantityType(.activeEnergyBurned),
+        HKQuantityType(.distanceWalkingRunning),
+        HKQuantityType(.distanceCycling),
+        HKQuantityType(.distanceSwimming),
+        HKQuantityType(.heartRate),
+        HKQuantityType(.runningSpeed),
         HKWorkoutType.workoutType()
     ]
 
@@ -95,7 +100,7 @@ final class HealthKitManager: HealthKitManagerProtocol {
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
 
-        return try await withCheckedThrowingContinuation { continuation in
+        let workouts: [HKWorkout] = try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(
                 sampleType: HKWorkoutType.workoutType(),
                 predicate: predicate,
@@ -112,21 +117,77 @@ final class HealthKitManager: HealthKitManagerProtocol {
                     return
                 }
 
-                let models = workouts.map { workout in
-                    WorkoutModel(
-                        id: UUID(),
-                        type: self.mapWorkoutType(workout.workoutActivityType),
-                        startDate: workout.startDate,
-                        endDate: workout.endDate,
-                        duration: workout.duration,
-                        activeCalories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
-                    )
-                }
-
-                continuation.resume(returning: models)
+                continuation.resume(returning: workouts)
             }
 
             healthStore.execute(query)
+        }
+
+        // Convert HKWorkouts to WorkoutModels with extended data
+        var models: [WorkoutModel] = []
+        for workout in workouts {
+            let model = await createWorkoutModel(from: workout)
+            models.append(model)
+        }
+
+        return models
+    }
+
+    private func createWorkoutModel(from workout: HKWorkout) async -> WorkoutModel {
+        let workoutType = mapWorkoutType(workout.workoutActivityType)
+
+        // Get distance based on workout type
+        var distance: Double?
+        if let totalDistance = workout.totalDistance {
+            distance = totalDistance.doubleValue(for: .meter())
+        }
+
+        // Calculate average pace for running/walking
+        var averagePace: Double?
+        if let dist = distance, dist > 0, workout.duration > 0 {
+            // Pace in seconds per kilometer
+            let distanceInKm = dist / 1000
+            averagePace = workout.duration / distanceInKm
+        }
+
+        // Fetch heart rate data for this workout
+        let heartRateData = await fetchHeartRateForWorkout(workout)
+
+        return WorkoutModel(
+            id: UUID(),
+            type: workoutType,
+            startDate: workout.startDate,
+            endDate: workout.endDate,
+            duration: workout.duration,
+            activeCalories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0,
+            distance: distance,
+            averageHeartRate: heartRateData.average,
+            maxHeartRate: heartRateData.max,
+            averagePace: averagePace,
+            elevationGain: nil // Would need workout route data
+        )
+    }
+
+    private func fetchHeartRateForWorkout(_ workout: HKWorkout) async -> (average: Double?, max: Double?) {
+        let heartRateType = HKQuantityType(.heartRate)
+        let predicate = HKQuery.predicateForSamples(
+            withStart: workout.startDate,
+            end: workout.endDate,
+            options: .strictStartDate
+        )
+
+        return await withCheckedContinuation { continuation in
+            let query = HKStatisticsQuery(
+                quantityType: heartRateType,
+                quantitySamplePredicate: predicate,
+                options: [.discreteAverage, .discreteMax]
+            ) { _, statistics, _ in
+                let avgHR = statistics?.averageQuantity()?.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+                let maxHR = statistics?.maximumQuantity()?.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+                continuation.resume(returning: (avgHR, maxHR))
+            }
+
+            self.healthStore.execute(query)
         }
     }
 

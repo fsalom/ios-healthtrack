@@ -75,6 +75,39 @@ struct WorkoutModel: Identifiable, Equatable {
     let duration: TimeInterval
     let activeCalories: Double
 
+    // Extended data from HealthKit
+    let distance: Double? // in meters
+    let averageHeartRate: Double? // bpm
+    let maxHeartRate: Double? // bpm
+    let averagePace: Double? // seconds per kilometer
+    let elevationGain: Double? // in meters
+
+    init(
+        id: UUID = UUID(),
+        type: WorkoutType,
+        startDate: Date,
+        endDate: Date,
+        duration: TimeInterval,
+        activeCalories: Double,
+        distance: Double? = nil,
+        averageHeartRate: Double? = nil,
+        maxHeartRate: Double? = nil,
+        averagePace: Double? = nil,
+        elevationGain: Double? = nil
+    ) {
+        self.id = id
+        self.type = type
+        self.startDate = startDate
+        self.endDate = endDate
+        self.duration = duration
+        self.activeCalories = activeCalories
+        self.distance = distance
+        self.averageHeartRate = averageHeartRate
+        self.maxHeartRate = maxHeartRate
+        self.averagePace = averagePace
+        self.elevationGain = elevationGain
+    }
+
     var displayName: String {
         type.displayName
     }
@@ -96,5 +129,51 @@ struct WorkoutModel: Identifiable, Equatable {
 
     var formattedCalories: String {
         "\(Int(activeCalories)) kcal"
+    }
+
+    var formattedDistance: String? {
+        guard let distance = distance, distance > 0 else { return nil }
+        if distance >= 1000 {
+            return String(format: "%.2f km", distance / 1000)
+        } else {
+            return String(format: "%.0f m", distance)
+        }
+    }
+
+    var formattedPace: String? {
+        guard let pace = averagePace, pace > 0 else { return nil }
+        let minutes = Int(pace) / 60
+        let seconds = Int(pace) % 60
+        return String(format: "%d:%02d /km", minutes, seconds)
+    }
+
+    var formattedHeartRate: String? {
+        guard let hr = averageHeartRate else { return nil }
+        return "\(Int(hr)) bpm"
+    }
+
+    var formattedElevation: String? {
+        guard let elevation = elevationGain, elevation > 0 else { return nil }
+        return String(format: "+%.0f m", elevation)
+    }
+
+    // Whether this workout type typically has distance data
+    var hasDistanceData: Bool {
+        switch type {
+        case .running, .walking, .cycling, .swimming, .hiking, .elliptical, .rowing:
+            return true
+        default:
+            return false
+        }
+    }
+
+    // Whether this workout type is strength-based (can have sets/reps)
+    var isStrengthBased: Bool {
+        switch type {
+        case .strengthTraining, .crossTraining:
+            return true
+        default:
+            return false
+        }
     }
 }

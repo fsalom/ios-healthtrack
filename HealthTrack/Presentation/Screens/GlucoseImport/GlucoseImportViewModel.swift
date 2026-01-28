@@ -91,7 +91,9 @@ final class GlucoseImportViewModel {
     var isLoading: Bool = false
     var showingFilePicker: Bool = false
     var showingAddMeal: Bool = false
+    var showingWorkoutDetail: Bool = false
     var addMealTime: Date = Date()
+    var selectedWorkout: WorkoutModel?
     var hasGlucoseData: Bool = false
     var importedFileName: String = ""
     var healthKitAuthorized: Bool = false
@@ -359,6 +361,11 @@ final class GlucoseImportViewModel {
     func addMeal(_ meal: MealModel) {
         meals.append(meal)
         meals.sort { $0.timestamp < $1.timestamp }
+    }
+
+    func didTapWorkout(_ workout: WorkoutModel) {
+        selectedWorkout = workout
+        showingWorkoutDetail = true
     }
 
     // MARK: - Day Navigation

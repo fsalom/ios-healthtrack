@@ -7,6 +7,9 @@
     ":" : {
 
     },
+    "@ %@" : {
+
+    },
     "%@" : {
 
     },
@@ -39,13 +42,22 @@
     "%lld pasos" : {
 
     },
+    "%lld reps" : {
+
+    },
     "%lldg" : {
 
     },
     "%lldg carbs" : {
 
     },
+    "%lldkg" : {
+
+    },
     "0" : {
+
+    },
+    "10" : {
 
     },
     "account_changeEmail" : {
@@ -94,6 +106,12 @@
 
     },
     "Alinea el codigo dentro del recuadro" : {
+
+    },
+    "Anadir" : {
+
+    },
+    "Anadir Ejercicio" : {
 
     },
     "auth_actualPassword" : {
@@ -276,6 +294,12 @@
     "Documents" : {
 
     },
+    "Ej: Press banca, Sentadilla..." : {
+
+    },
+    "Ejercicios" : {
+
+    },
     "Eliminar datos de glucosa" : {
 
     },
@@ -294,6 +318,9 @@
     "Escanear" : {
 
     },
+    "Estadisticas" : {
+
+    },
     "Filtrar" : {
 
     },
@@ -304,6 +331,9 @@
 
     },
     "Guardar Comida" : {
+
+    },
+    "Guardar Ejercicio" : {
 
     },
     "High" : {
@@ -324,6 +354,9 @@
     "Lecturas" : {
 
     },
+    "Limpiar" : {
+
+    },
     "Low" : {
 
     },
@@ -339,6 +372,9 @@
     "Mostrar glucosa" : {
 
     },
+    "No hay ejercicios registrados" : {
+
+    },
     "No hay lecturas que coincidan con el filtro seleccionado" : {
 
     },
@@ -346,6 +382,12 @@
 
     },
     "Nombre del alimento" : {
+
+    },
+    "Nombre del ejercicio" : {
+
+    },
+    "Nueva serie" : {
 
     },
     "Ocultar glucosa" : {
@@ -375,6 +417,9 @@
     "personalData_savedSuccess" : {
 
     },
+    "Peso (kg)" : {
+
+    },
     "Proteinas (g)" : {
 
     },
@@ -390,7 +435,16 @@
     "Reimportar glucosa" : {
 
     },
+    "Reps" : {
+
+    },
     "Seleccionar Prefijo" : {
+
+    },
+    "Serie %lld" : {
+
+    },
+    "Series (%lld)" : {
 
     },
     "Sin resultados" : {
@@ -400,6 +454,9 @@
 
     },
     "TOTALES" : {
+
+    },
+    "Volumen total" : {
 
     },
     "Workout" : {
