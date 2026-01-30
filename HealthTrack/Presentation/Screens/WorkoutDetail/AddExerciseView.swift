@@ -17,23 +17,31 @@ struct AddExerciseView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        nameSection
-                        addSetSection
-
-                        if !viewModel.sets.isEmpty {
-                            setsListSection
-                        }
-                    }
-                    .padding()
+                if viewModel.hasSelectedExercise {
+                    // Mode 2: Set entry
+                    setEntryContent
+                } else {
+                    // Mode 1: Exercise selection
+                    exerciseSelectionContent
                 }
-
-                saveButton
             }
-            .navigationTitle("Anadir Ejercicio")
+            .navigationTitle(viewModel.hasSelectedExercise ? viewModel.exerciseName : "Seleccionar ejercicio")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if viewModel.hasSelectedExercise {
+                        Button {
+                            viewModel.clearSelection()
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                Text("Cambiar")
+                            }
+                            .font(.subheadline)
+                        }
+                    }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         dismiss()
@@ -44,99 +52,61 @@ struct AddExerciseView: View {
                     }
                 }
             }
+            .task {
+                await viewModel.loadExercises()
+            }
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - Exercise Selection Mode
 
-    private var nameSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Nombre del ejercicio")
-                .font(.headline)
-
-            TextField("Ej: Press banca, Sentadilla...", text: $viewModel.exerciseName)
-                .textFieldStyle(.roundedBorder)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(viewModel.exerciseSuggestions, id: \.self) { suggestion in
-                        Button {
-                            viewModel.selectSuggestion(suggestion)
-                        } label: {
-                            Text(suggestion)
-                                .font(.caption)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(viewModel.exerciseName == suggestion ? Color.blue : Color(.tertiarySystemBackground))
-                                .foregroundStyle(viewModel.exerciseName == suggestion ? .white : .primary)
-                                .clipShape(Capsule())
-                        }
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+    private var exerciseSelectionContent: some View {
+        ExercisePickerView(
+            exercises: viewModel.filteredExercises,
+            recentExercises: viewModel.recentExercises,
+            onSelect: { template in
+                viewModel.selectExercise(template)
+            },
+            searchQuery: $viewModel.searchQuery,
+            selectedCategory: $viewModel.selectedCategory
+        )
     }
 
-    private var addSetSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Nueva serie")
-                .font(.headline)
+    // MARK: - Set Entry Mode
 
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Reps")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("10", text: $viewModel.currentReps)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.numberPad)
-                        .frame(width: 80)
+    private var setEntryContent: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Quick set entry
+                    QuickSetEntryView(
+                        reps: $viewModel.currentReps,
+                        weight: $viewModel.currentWeight,
+                        isWarmup: $viewModel.currentIsWarmup,
+                        notes: $viewModel.currentNotes,
+                        previousWeight: viewModel.previousWeight,
+                        previousReps: viewModel.previousReps,
+                        onAddSet: { viewModel.addSet() },
+                        onDuplicateLast: { viewModel.duplicateLastSet() },
+                        hasLastSet: viewModel.lastSet != nil
+                    )
+
+                    // Sets list
+                    if !viewModel.sets.isEmpty {
+                        setsListSection
+                    }
+
+                    // Batch entry toggle
+                    batchEntrySection
                 }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Peso (kg)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    TextField("0", text: $viewModel.currentWeight)
-                        .textFieldStyle(.roundedBorder)
-                        .keyboardType(.decimalPad)
-                        .frame(width: 80)
-                }
-
-                Spacer()
-
-                Button {
-                    viewModel.addSet()
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title)
-                        .foregroundStyle(.blue)
-                }
-                .disabled(viewModel.currentReps.isEmpty)
+                .padding()
             }
 
-            HStack(spacing: 8) {
-                ForEach([20, 40, 60, 80, 100], id: \.self) { weight in
-                    Button {
-                        viewModel.setQuickWeight(weight)
-                    } label: {
-                        Text("\(weight)kg")
-                            .font(.caption2)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(Color(.tertiarySystemBackground))
-                            .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
+            // Save button
+            if viewModel.canSave {
+                saveButton
             }
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private var setsListSection: some View {
@@ -147,49 +117,76 @@ struct AddExerciseView: View {
 
                 Spacer()
 
-                if !viewModel.sets.isEmpty {
-                    Button("Limpiar") {
-                        viewModel.clearSets()
-                    }
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                Button("Limpiar") {
+                    viewModel.clearSets()
                 }
+                .font(.caption)
+                .foregroundStyle(.red)
             }
 
             ForEach(Array(viewModel.sets.enumerated()), id: \.element.id) { index, set in
-                HStack {
-                    Text("Serie \(index + 1)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
-
-                    Text("\(set.reps) reps")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-
-                    if set.weight > 0 {
-                        Text("@ \(set.formattedWeight)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Button {
-                        viewModel.removeSet(at: index)
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding()
-                .background(Color(.tertiarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                SetRowView(
+                    setNumber: index + 1,
+                    set: set,
+                    isEditing: viewModel.editingSetId == set.id,
+                    onTapEdit: { viewModel.startEditingSet(set) },
+                    onDuplicate: {
+                        let newSet = SetModel(reps: set.reps, weight: set.weight)
+                        viewModel.sets.append(newSet)
+                    },
+                    onDelete: { viewModel.removeSet(set) },
+                    onUpdate: { viewModel.updateSet($0) }
+                )
             }
+
+            // Volume summary
+            HStack {
+                Text("Volumen total")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(formattedTotalVolume)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+            }
+            .padding(.top, 8)
         }
         .padding()
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var batchEntrySection: some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation {
+                    viewModel.showBatchEntry.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: viewModel.showBatchEntry ? "chevron.down" : "chevron.right")
+                        .font(.caption)
+                    Text("Agregar multiples series")
+                        .font(.subheadline)
+                    Spacer()
+                }
+                .foregroundStyle(.secondary)
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .buttonStyle(.plain)
+
+            if viewModel.showBatchEntry {
+                BatchSetEntryView(
+                    numberOfSets: $viewModel.batchSetCount,
+                    reps: $viewModel.batchReps,
+                    weight: $viewModel.batchWeight,
+                    onAddBatch: { viewModel.addBatchSets() }
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
     }
 
     private var saveButton: some View {
@@ -203,8 +200,17 @@ struct AddExerciseView: View {
                 .padding(.vertical, 16)
         }
         .buttonStyle(.borderedProminent)
-        .disabled(!viewModel.canSave)
         .padding()
         .background(Color(.systemBackground))
+    }
+
+    // MARK: - Helpers
+
+    private var formattedTotalVolume: String {
+        let total = viewModel.sets.reduce(0.0) { $0 + ($1.weight * Double($1.reps)) }
+        if total >= 1000 {
+            return String(format: "%.1f t", total / 1000)
+        }
+        return "\(Int(total)) kg"
     }
 }
