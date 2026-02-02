@@ -16,6 +16,7 @@ struct GlucoseImportView: View {
     @State private var chartWidth: CGFloat = 0
     @State private var initialZoomHours: Double = 24
     @State private var selectedActivity: HourlyActivityModel?
+    @State private var showingStats: Bool = false
 
     // MARK: - Body
 
@@ -49,36 +50,44 @@ struct GlucoseImportView: View {
         .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    if viewModel.hasGlucoseData {
+                HStack(spacing: 12) {
+                    Button {
+                        showingStats = true
+                    } label: {
+                        Image(systemName: "chart.bar.xaxis")
+                    }
+
+                    Menu {
+                        if viewModel.hasGlucoseData {
+                            Button {
+                                viewModel.toggleGlucoseData()
+                            } label: {
+                                Label(
+                                    viewModel.showGlucoseData ? "Ocultar glucosa" : "Mostrar glucosa",
+                                    systemImage: viewModel.showGlucoseData ? "eye.slash" : "eye"
+                                )
+                            }
+
+                            Button(role: .destructive) {
+                                viewModel.clearGlucoseData()
+                            } label: {
+                                Label("Eliminar datos de glucosa", systemImage: "trash")
+                            }
+
+                            Divider()
+                        }
+
                         Button {
-                            viewModel.toggleGlucoseData()
+                            viewModel.openFilePicker()
                         } label: {
                             Label(
-                                viewModel.showGlucoseData ? "Ocultar glucosa" : "Mostrar glucosa",
-                                systemImage: viewModel.showGlucoseData ? "eye.slash" : "eye"
+                                viewModel.hasGlucoseData ? "Reimportar glucosa" : "Importar glucosa",
+                                systemImage: "doc.badge.plus"
                             )
                         }
-
-                        Button(role: .destructive) {
-                            viewModel.clearGlucoseData()
-                        } label: {
-                            Label("Eliminar datos de glucosa", systemImage: "trash")
-                        }
-
-                        Divider()
-                    }
-
-                    Button {
-                        viewModel.openFilePicker()
                     } label: {
-                        Label(
-                            viewModel.hasGlucoseData ? "Reimportar glucosa" : "Importar glucosa",
-                            systemImage: "doc.badge.plus"
-                        )
+                        Image(systemName: "ellipsis.circle")
                     }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
                 }
             }
         }
@@ -113,6 +122,9 @@ struct GlucoseImportView: View {
             if let workout = viewModel.selectedWorkout {
                 WorkoutDetailBuilder.build(workout: workout)
             }
+        }
+        .sheet(isPresented: $showingStats) {
+            StatsBuilder.build()
         }
         .task {
             await viewModel.loadInitialData()

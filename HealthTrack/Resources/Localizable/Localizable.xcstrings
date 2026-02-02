@@ -7,9 +7,6 @@
     ":" : {
 
     },
-    "@ %@" : {
-
-    },
     "%@" : {
 
     },
@@ -22,6 +19,15 @@
           }
         }
       }
+    },
+    "%@ pasos" : {
+
+    },
+    "%@ pasos/dia" : {
+
+    },
+    "%@/dia" : {
+
     },
     "%lld" : {
 
@@ -42,13 +48,19 @@
     "%lld pasos" : {
 
     },
-    "%lld reps" : {
+    "%lld." : {
+
+    },
+    "%lld%%" : {
 
     },
     "%lldg" : {
 
     },
     "%lldg carbs" : {
+
+    },
+    "%lldg prot" : {
 
     },
     "%lldkg" : {
@@ -93,10 +105,16 @@
     "Actividad" : {
 
     },
+    "Agregar %lld series" : {
+
+    },
     "Agregar alimento" : {
 
     },
     "Agregar Comida" : {
+
+    },
+    "Agregar multiples series" : {
 
     },
     "alert_deleteAccountTitle" : {
@@ -109,9 +127,6 @@
 
     },
     "Anadir" : {
-
-    },
-    "Anadir Ejercicio" : {
 
     },
     "auth_actualPassword" : {
@@ -240,16 +255,34 @@
     "auth_writeNewPassword" : {
 
     },
+    "Balance Energetico" : {
+
+    },
     "Base" : {
 
     },
     "Buscando producto..." : {
 
     },
+    "Buscar ejercicio..." : {
+
+    },
     "Buscar por fecha (d/m)" : {
 
     },
+    "Calentamiento" : {
+
+    },
     "Calorias" : {
+
+    },
+    "Calorias Quemadas" : {
+
+    },
+    "Cambiar" : {
+
+    },
+    "Cantidad" : {
 
     },
     "Cantidad:" : {
@@ -258,10 +291,16 @@
     "Carbos (g)" : {
 
     },
+    "Cargando estadisticas..." : {
+
+    },
     "changeEmailCompletedTitle" : {
 
     },
     "Comidas" : {
+
+    },
+    "Comidas de hoy" : {
 
     },
     "common_accept" : {
@@ -291,16 +330,31 @@
     "common_undo" : {
 
     },
-    "Documents" : {
+    "Consumido" : {
 
     },
-    "Ej: Press banca, Sentadilla..." : {
+    "Deficit" : {
+
+    },
+    "Dia" : {
+
+    },
+    "Distribucion de Macros (hoy)" : {
+
+    },
+    "Duplicar" : {
 
     },
     "Ejercicios" : {
 
     },
+    "Ejercicios Frecuentes" : {
+
+    },
     "Eliminar datos de glucosa" : {
+
+    },
+    "Empezar entreno" : {
 
     },
     "End" : {
@@ -312,10 +366,19 @@
     "Entrenamientos" : {
 
     },
+    "Entrenamientos recientes" : {
+
+    },
+    "Entreno" : {
+
+    },
     "Escanea el codigo de barras" : {
 
     },
     "Escanear" : {
+
+    },
+    "Esta semana" : {
 
     },
     "Estadisticas" : {
@@ -342,13 +405,16 @@
     "Hora" : {
 
     },
-    "Images" : {
-
-    },
     "Importar glucosa" : {
 
     },
     "Informacion" : {
+
+    },
+    "Inicio rapido" : {
+
+    },
+    "kg" : {
 
     },
     "Lecturas" : {
@@ -372,7 +438,13 @@
     "Mostrar glucosa" : {
 
     },
+    "No hay comidas registradas" : {
+
+    },
     "No hay ejercicios registrados" : {
+
+    },
+    "No hay entrenamientos recientes" : {
 
     },
     "No hay lecturas que coincidan con el filtro seleccionado" : {
@@ -384,10 +456,13 @@
     "Nombre del alimento" : {
 
     },
-    "Nombre del ejercicio" : {
+    "Notas (opcional)" : {
 
     },
     "Nueva serie" : {
+
+    },
+    "Nutricion" : {
 
     },
     "Ocultar glucosa" : {
@@ -417,10 +492,25 @@
     "personalData_savedSuccess" : {
 
     },
+    "Peso" : {
+
+    },
     "Peso (kg)" : {
 
     },
+    "Promedio" : {
+
+    },
     "Proteinas (g)" : {
+
+    },
+    "Quemado" : {
+
+    },
+    "Recientes" : {
+
+    },
+    "Records Personales" : {
 
     },
     "register_notAllFieldsValid" : {
@@ -432,19 +522,34 @@
     "registerCompletedTitle" : {
 
     },
+    "Registrar comida" : {
+
+    },
     "Reimportar glucosa" : {
+
+    },
+    "reps" : {
 
     },
     "Reps" : {
 
     },
+    "Resumen de hoy" : {
+
+    },
     "Seleccionar Prefijo" : {
 
     },
-    "Serie %lld" : {
+    "Semana" : {
+
+    },
+    "Series" : {
 
     },
     "Series (%lld)" : {
+
+    },
+    "sesiones" : {
 
     },
     "Sin resultados" : {
@@ -453,13 +558,46 @@
     "Start" : {
 
     },
+    "Superavit" : {
+
+    },
+    "Tendencia Semanal" : {
+
+    },
+    "tiempo total" : {
+
+    },
+    "Todos" : {
+
+    },
+    "Total semana" : {
+
+    },
     "TOTALES" : {
+
+    },
+    "Valor" : {
+
+    },
+    "Volumen" : {
+
+    },
+    "Volumen Semanal" : {
 
     },
     "Volumen total" : {
 
     },
+    "vs" : {
+
+    },
+    "vs anterior" : {
+
+    },
     "Workout" : {
+
+    },
+    "x" : {
 
     }
   },

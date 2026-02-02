@@ -8,64 +8,77 @@
 import SwiftUI
 
 enum TabItem: Int, CaseIterable, Identifiable {
-    case glucose
-    case images
-    case documents
+    case activity
+    case training
+    case nutrition
+    case stats
 
     var id: Int { rawValue }
 
     var title: String {
         switch self {
-        case .glucose: return "Glucosa"
-        case .images: return "Images"
-        case .documents: return "Documents"
+        case .activity: return "Actividad"
+        case .training: return "Entreno"
+        case .nutrition: return "Nutricion"
+        case .stats: return "Stats"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .glucose: return "drop.fill"
-        case .images: return "photo.fill"
-        case .documents: return "document.fill"
+        case .activity: return "figure.walk"
+        case .training: return "dumbbell.fill"
+        case .nutrition: return "fork.knife"
+        case .stats: return "chart.bar.fill"
         }
     }
 
     var color: Color {
         switch self {
-        case .glucose: return .red
-        case .images: return .yellow
-        case .documents: return .green
+        case .activity: return .blue
+        case .training: return .orange
+        case .nutrition: return .green
+        case .stats: return .purple
         }
     }
 
     var badge: Int {
         switch self {
-        case .glucose: return 0
-        case .images: return 0
-        case .documents: return 0
+        case .activity: return 0
+        case .training: return 0
+        case .nutrition: return 0
+        case .stats: return 0
         }
     }
 
     @ViewBuilder
     var view: some View {
         switch self {
-        case .glucose:
-            GlucoseTabView()
-        case .images:
-            Text("Images")
-        case .documents:
-            Text("Documents")
+        case .activity:
+            ActivityTabView()
+        case .training:
+            TrainingTabView()
+        case .nutrition:
+            NutritionTabView()
+        case .stats:
+            StatsTabView()
         }
     }
 }
 
-// MARK: - GlucoseTabView
-struct GlucoseTabView: View {
+// MARK: - BaseTabView
+
+private struct BaseTabView<Content: View>: View {
     @State private var navigator = Navigator.shared
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
 
     var body: some View {
         NavigationStack(path: $navigator.path) {
-            GlucoseImportBuilder.build()
+            content
                 .navigationDestination(for: Page.self) { page in
                     page
                 }
@@ -97,12 +110,52 @@ struct GlucoseTabView: View {
     }
 }
 
+// MARK: - ActivityTabView
+
+struct ActivityTabView: View {
+    var body: some View {
+        BaseTabView {
+            GlucoseImportBuilder.build()
+        }
+    }
+}
+
+// MARK: - TrainingTabView
+
+struct TrainingTabView: View {
+    var body: some View {
+        BaseTabView {
+            TrainingBuilder.build()
+        }
+    }
+}
+
+// MARK: - NutritionTabView
+
+struct NutritionTabView: View {
+    var body: some View {
+        BaseTabView {
+            MealsBuilder.build()
+        }
+    }
+}
+
+// MARK: - StatsTabView
+
+struct StatsTabView: View {
+    var body: some View {
+        BaseTabView {
+            StatsBuilder.build()
+        }
+    }
+}
+
 // MARK: - CustomTabBar
 struct CustomTabBar: View {
     @State private var navigator = Navigator.shared
     private var config: TabBarConfig
 
-    init(initialTab: TabItem = .glucose) {
+    init(initialTab: TabItem = .activity) {
         self.config = TabBarConfig.default
         navigator.tabIndex = initialTab.rawValue
         configureTabBarAppearance(config: self.config)
